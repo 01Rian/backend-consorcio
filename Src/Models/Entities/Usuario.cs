@@ -13,6 +13,7 @@ namespace rian_p01_back.src.Models.Entities
 
         [Required]
         [StringLength(100)]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required]
