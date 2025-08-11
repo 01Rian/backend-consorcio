@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using rian_p01_back.src.Data;
+using rian_p01_back.src.Data.Repositories.Interfaces;
+using rian_p01_back.src.Data.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,12 @@ if (!string.IsNullOrEmpty(connectionString))
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IAdministradoraRepository, AdministradoraRepository>();
+builder.Services.AddScoped<IConsorcioRepository, ConsorcioRepository>();
+builder.Services.AddScoped<ICotasRepository, CotasRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
