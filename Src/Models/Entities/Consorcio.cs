@@ -41,13 +41,6 @@ namespace rian_p01_back.src.Models.Entities
 
         public DateTime? DataAtualizacao { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "O AdministradoraId deve ser maior que zero.")]
-        public int AdministradoraId { get; set; }
-
-        [ForeignKey("AdministradoraId")]
-        public virtual Administradora Administradora { get; set; } = null!;
-
         public virtual ICollection<Cotas> Cotas { get; set; } = new List<Cotas>();
     }
 }

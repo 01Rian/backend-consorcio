@@ -14,12 +14,5 @@ namespace rian_p01_back.src.Data.Repositories.Implementations
                 .Include(c => c.Cotas)
                 .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
         }
-
-        public async Task<IEnumerable<Consorcio>> GetByAdministradoraAsync(int administradoraId, CancellationToken cancellationToken = default)
-        {
-            return await _dbSet.AsNoTracking()
-                .Where(c => c.AdministradoraId == administradoraId)
-                .ToListAsync(cancellationToken);
-        }
     }
 }

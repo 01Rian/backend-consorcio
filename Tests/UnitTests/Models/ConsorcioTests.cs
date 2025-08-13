@@ -25,7 +25,6 @@ namespace tests.UnitTests.Models
             Assert.True(consorcio.Ativo);
             Assert.True(consorcio.DataCadastro <= DateTime.Now);
             Assert.Null(consorcio.DataAtualizacao);
-            Assert.Equal(0, consorcio.AdministradoraId);
             Assert.NotNull(consorcio.Cotas);
             Assert.Empty(consorcio.Cotas);
         }
@@ -52,7 +51,6 @@ namespace tests.UnitTests.Models
             consorcio.DataTermino = dataTermino;
             consorcio.Ativo = false;
             consorcio.DataAtualizacao = dataAtualizacao;
-            consorcio.AdministradoraId = 1;
 
             // Assert
             Assert.Equal(1, consorcio.Id);
@@ -67,7 +65,6 @@ namespace tests.UnitTests.Models
             Assert.Equal(dataTermino, consorcio.DataTermino);
             Assert.False(consorcio.Ativo);
             Assert.Equal(dataAtualizacao, consorcio.DataAtualizacao);
-            Assert.Equal(1, consorcio.AdministradoraId);
         }
 
         [Theory]
@@ -87,8 +84,7 @@ namespace tests.UnitTests.Models
                 QuantidadeCotas = 50,
                 PrazoMeses = 60,
                 TaxaAdministracao = 15,
-                FundoReserva = 2,
-                AdministradoraId = 1
+                FundoReserva = 2
             };
 
             var context = new ValidationContext(consorcio);
@@ -117,8 +113,7 @@ namespace tests.UnitTests.Models
                 QuantidadeCotas = 50,
                 PrazoMeses = 60,
                 TaxaAdministracao = 15,
-                FundoReserva = 2,
-                AdministradoraId = 1
+                FundoReserva = 2
             };
 
             var context = new ValidationContext(consorcio);
@@ -132,30 +127,5 @@ namespace tests.UnitTests.Models
             Assert.Contains(results, r => r.MemberNames.Contains(campo));
         }
 
-        [Fact]
-        public void Consorcio_AdministradoraId_DeveSerObrigatorio()
-        {
-            // Arrange
-            var consorcio = new Consorcio
-            {
-                Nome = "Teste",
-                Codigo = "CONS001",
-                ValorBem = 100000,
-                QuantidadeCotas = 50,
-                PrazoMeses = 60,
-                TaxaAdministracao = 15,
-                FundoReserva = 2,
-            };
-
-            var context = new ValidationContext(consorcio);
-            var results = new List<ValidationResult>();
-
-            // Act
-            var isValid = Validator.TryValidateObject(consorcio, context, results, true);
-
-            // Assert
-            Assert.False(isValid);
-            Assert.Contains(results, r => r.MemberNames.Contains("AdministradoraId"));
-        }
     }
 }
