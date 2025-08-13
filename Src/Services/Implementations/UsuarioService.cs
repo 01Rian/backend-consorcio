@@ -39,11 +39,11 @@ namespace rian_p01_back.src.Services.Implementations
 
             var existingByEmail = await _usuarioRepository.GetByEmailAsync(entity.Email, cancellationToken);
             if (existingByEmail != null)
-                throw new InvalidOperationException("O e-mail já está em uso por outro usuário");
+                throw new InvalidOperationException("Usuário já cadastrado");
 
             var existingByCpf = await _usuarioRepository.GetByCpfAsync(entity.CPF, cancellationToken);
             if (existingByCpf != null)
-                throw new InvalidOperationException("O CPF já está em uso por outro usuário");
+                throw new InvalidOperationException("Usuário já cadastrado");
 
             if (string.IsNullOrWhiteSpace(entity.Senha))
                 throw new ArgumentException("A senha não pode ser nula ou vazia", nameof(entity.Senha));
