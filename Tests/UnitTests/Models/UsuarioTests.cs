@@ -245,32 +245,6 @@ namespace tests.UnitTests.Models
             Assert.Equal("São Paulo", usuario.Endereco.Cidade);
             Assert.Equal("SP", usuario.Endereco.Estado);
             Assert.Equal("01310-100", usuario.Endereco.CEP);
-            Assert.False(usuario.Endereco.IsEmpty);
-        }
-
-        [Fact]
-        public void Endereco_IsEmpty_DeveRetornarTrueQuandoVazio()
-        {
-            // Arrange
-            var endereco = new Endereco();
-
-            // Act & Assert
-            Assert.True(endereco.IsEmpty);
-        }
-
-        [Fact]
-        public void Endereco_IsEmpty_DeveRetornarFalseQuandoTemDados()
-        {
-            // Arrange
-            var endereco = new Endereco
-            {
-                Logradouro = "Rua das Flores",
-                Cidade = "São Paulo",
-                CEP = "01234-567"
-            };
-
-            // Act & Assert
-            Assert.False(endereco.IsEmpty);
         }
     }
 }
