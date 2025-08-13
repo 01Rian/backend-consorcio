@@ -1,5 +1,6 @@
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using rian_p01_back.Tests.Models;
 
 namespace rian_p01_back.Tests.Repositories
 {

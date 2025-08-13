@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using rian_p01_back.src.Data.Repositories.Implementations;
 using rian_p01_back.src.Data;
+using rian_p01_back.Tests.Models;
 
 namespace rian_p01_back.Tests.Repositories
 {
@@ -30,14 +31,5 @@ namespace rian_p01_back.Tests.Repositories
         {
             Context?.Dispose();
         }
-    }
-
-    public class TestEntity
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public bool IsActive { get; set; }
     }
 }

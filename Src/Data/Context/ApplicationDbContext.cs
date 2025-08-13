@@ -9,7 +9,6 @@ namespace rian_p01_back.src.Data
         {
         }
 
-        public DbSet<Administradora> Administradoras { get; set; }
         public DbSet<Consorcio> Consorcios { get; set; }
         public DbSet<Cotas> Cotas { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
@@ -19,7 +18,6 @@ namespace rian_p01_back.src.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Usuario>().OwnsOne(u => u.Endereco);
-            modelBuilder.Entity<Administradora>().OwnsOne(a => a.Endereco);
         }
     }
 }

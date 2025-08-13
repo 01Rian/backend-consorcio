@@ -33,24 +33,5 @@ namespace rian_p01_back.Tests.Repositories
             Assert.NotNull(result!.Cotas);
             Assert.Single(result.Cotas);
         }
-
-        [Fact]
-        public async Task GetByAdministradoraAsync_DeveRetornarConsorciosCorretos()
-        {
-            // Arrange
-            var consorcio = _faker.Generate();
-            consorcio.AdministradoraId = 123;
-            await Context.Set<Consorcio>().AddAsync(consorcio);
-            await Context.SaveChangesAsync();
-
-            // Act
-            var repo = new ConsorcioRepository(Context);
-            var result = await repo.GetByAdministradoraAsync(123);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Single(result);
-            Assert.All(result, c => Assert.Equal(123, c.AdministradoraId));
-        }
     }
 }
