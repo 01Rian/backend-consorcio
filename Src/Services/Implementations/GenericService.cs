@@ -38,15 +38,6 @@ namespace rian_p01_back.src.Services.Implementations
             return result;
         }
 
-        public virtual async Task CreateRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-        {
-            if (entities == null || !entities.Any())
-                throw new ArgumentException("Entidades não podem ser nulas ou vazias", nameof(entities));
-
-            await _repository.AddRangeAsync(entities, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
-        }
-
         public virtual async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
             if (entity == null)
@@ -73,15 +64,6 @@ namespace rian_p01_back.src.Services.Implementations
                 throw new ArgumentNullException(nameof(entity));
 
             _repository.Remove(entity);
-            await _repository.SaveChangesAsync(cancellationToken);
-        }
-
-        public virtual async Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-        {
-            if (entities == null || !entities.Any())
-                throw new ArgumentException("Entidades não podem ser nulas ou vazias", nameof(entities));
-
-            _repository.RemoveRange(entities);
             await _repository.SaveChangesAsync(cancellationToken);
         }
     }
