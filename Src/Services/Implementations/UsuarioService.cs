@@ -32,6 +32,18 @@ namespace rian_p01_back.src.Services.Implementations
             return await _usuarioRepository.GetByCpfAsync(cpf, cancellationToken);
         }
 
+        public bool ValidatePassword(Usuario usuario, string password)
+        {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario));
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("A senha não pode ser nula ou vazia", nameof(password));
+
+            var result = _passwordHasher.VerifyHashedPassword(usuario, usuario.Senha, password);
+            return result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded;
+        }
+
         public override async Task<Usuario> CreateAsync(Usuario entity, CancellationToken cancellationToken = default)
         {
             if (entity == null)
