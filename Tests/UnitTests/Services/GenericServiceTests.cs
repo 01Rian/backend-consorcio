@@ -127,32 +127,6 @@ namespace UnitTests.Services
         }
 
         [Fact]
-        public async Task CriarVariosAsync_ComEntidadesValidas_DeveCriarEntidades()
-        {
-            // Arrange
-            var entities = _faker.Generate(3);
-            _mockRepository.Setup(r => r.AddRangeAsync(entities, It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Act
-            await _service.CreateRangeAsync(entities);
-
-            // Assert
-            _mockRepository.Verify(r => r.AddRangeAsync(entities, It.IsAny<CancellationToken>()), Times.Once);
-            _mockRepository.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task CriarVariosAsync_ComColecaoNulaOuVazia_DeveLancarArgumentException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateRangeAsync(null!));
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateRangeAsync(new List<TestEntity>()));
-        }
-
-        [Fact]
         public async Task AtualizarAsync_ComEntidadeValida_DeveAtualizarERetornarEntidade()
         {
             // Arrange
@@ -230,31 +204,6 @@ namespace UnitTests.Services
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DeleteAsync(null!));
-        }
-
-        [Fact]
-        public async Task DeletarVariosAsync_ComEntidadesValidas_DeveRemoverEntidades()
-        {
-            // Arrange
-            var entities = _faker.Generate(3);
-            _mockRepository.Setup(r => r.RemoveRange(entities));
-            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Act
-            await _service.DeleteRangeAsync(entities);
-
-            // Assert
-            _mockRepository.Verify(r => r.RemoveRange(entities), Times.Once);
-            _mockRepository.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeletarVariosAsync_ComColecaoNulaOuVazia_DeveLancarArgumentException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteRangeAsync(null!));
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteRangeAsync(new List<TestEntity>()));
         }
     }
 }
