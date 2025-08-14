@@ -123,7 +123,7 @@ namespace UnitTests.Services
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(usuario));
-            Assert.Contains("e-mail já está em uso", exception.Message);
+            Assert.Contains("Usuário já cadastrado", exception.Message);
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace UnitTests.Services
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(usuario));
-            Assert.Contains("CPF já está em uso", exception.Message);
+            Assert.Contains("Usuário já cadastrado", exception.Message);
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace UnitTests.Services
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateAsync(usuario));
-            Assert.Contains("e-mail já está em uso", exception.Message);
+            Assert.Contains("Usuário já cadastrado", exception.Message);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace UnitTests.Services
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateAsync(usuario));
-            Assert.Contains("CPF já está em uso", exception.Message);
+            Assert.Contains("Usuário já cadastrado", exception.Message);
         }
     }
 }
