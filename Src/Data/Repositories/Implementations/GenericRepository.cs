@@ -36,11 +36,6 @@ namespace rian_p01_back.src.Data.Repositories.Implementations
             return entity;
         }
 
-        public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-        {
-            await _dbSet.AddRangeAsync(entities, cancellationToken);
-        }
-
         public virtual void Update(T entity)
         {
             _dbSet.Update(entity);
@@ -50,12 +45,7 @@ namespace rian_p01_back.src.Data.Repositories.Implementations
         {
             _dbSet.Remove(entity);
         }
-
-        public virtual void RemoveRange(IEnumerable<T> entities)
-        {
-            _dbSet.RemoveRange(entities);
-        }
-
+        
         public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return _context.SaveChangesAsync(cancellationToken);
