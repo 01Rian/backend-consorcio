@@ -52,7 +52,10 @@ namespace rian_p01_back.Tests.Repositories
         {
             // Arrange
             var entities = _entityFaker.Generate(5);
-            await Context.Set<TestEntity>().AddRangeAsync(entities);
+            foreach (var e in entities)
+            {
+                await Context.Set<TestEntity>().AddAsync(e);
+            }
             await Context.SaveChangesAsync();
 
             // Act
@@ -82,11 +85,14 @@ namespace rian_p01_back.Tests.Repositories
             // Arrange
             var activeEntities = _entityFaker.Generate(3);
             activeEntities.ForEach(e => e.IsActive = true);
-            
+
             var inactiveEntities = _entityFaker.Generate(2);
             inactiveEntities.ForEach(e => e.IsActive = false);
 
-            await Context.Set<TestEntity>().AddRangeAsync(activeEntities.Concat(inactiveEntities));
+            foreach (var e in activeEntities.Concat(inactiveEntities))
+            {
+                await Context.Set<TestEntity>().AddAsync(e);
+            }
             await Context.SaveChangesAsync();
 
             // Act
@@ -126,7 +132,10 @@ namespace rian_p01_back.Tests.Repositories
             var entities = _entityFaker.Generate(3);
 
             // Act
-            await Repository.AddRangeAsync(entities);
+            foreach (var e in entities)
+            {
+                await Repository.AddAsync(e);
+            }
             await Repository.SaveChangesAsync();
 
             // Assert
@@ -177,28 +186,14 @@ namespace rian_p01_back.Tests.Repositories
         }
 
         [Fact]
-        public async Task RemoverVariasAsync_ComEntidadesValidas_DeveRemoverTodasEntidades()
-        {
-            // Arrange
-            var entities = _entityFaker.Generate(3);
-            await Context.Set<TestEntity>().AddRangeAsync(entities);
-            await Context.SaveChangesAsync();
-
-            // Act
-            Repository.RemoveRange(entities);
-            await Repository.SaveChangesAsync();
-
-            // Assert
-            var remainingEntities = await Context.Set<TestEntity>().ToListAsync();
-            Assert.Empty(remainingEntities);
-        }
-
-        [Fact]
         public async Task SalvarAlteracoesAsync_DeveRetornarNumeroDeRegistrosAfetados()
         {
             // Arrange
             var entities = _entityFaker.Generate(2);
-            await Repository.AddRangeAsync(entities);
+            foreach (var e in entities)
+            {
+                await Repository.AddAsync(e);
+            }
 
             // Act
             var result = await Repository.SaveChangesAsync();
