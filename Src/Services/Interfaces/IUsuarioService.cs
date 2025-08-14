@@ -6,5 +6,6 @@ namespace rian_p01_back.src.Services.Interfaces
     {
         Task<Usuario?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
         Task<Usuario?> GetByCpfAsync(string cpf, CancellationToken cancellationToken = default);
+        bool ValidatePassword(Usuario usuario, string password);
     }
 }

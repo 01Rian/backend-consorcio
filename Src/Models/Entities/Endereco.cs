@@ -26,9 +26,5 @@ namespace rian_p01_back.src.Models.Entities
 
         [StringLength(10)]
         public string? CEP { get; set; }
-
-        public bool IsEmpty => string.IsNullOrWhiteSpace(Logradouro) && 
-                               string.IsNullOrWhiteSpace(Cidade) && 
-                               string.IsNullOrWhiteSpace(CEP);
     }
 }

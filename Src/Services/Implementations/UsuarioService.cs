@@ -32,6 +32,18 @@ namespace rian_p01_back.src.Services.Implementations
             return await _usuarioRepository.GetByCpfAsync(cpf, cancellationToken);
         }
 
+        public bool ValidatePassword(Usuario usuario, string password)
+        {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario));
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("A senha não pode ser nula ou vazia", nameof(password));
+
+            var result = _passwordHasher.VerifyHashedPassword(usuario, usuario.Senha, password);
+            return result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded;
+        }
+
         public override async Task<Usuario> CreateAsync(Usuario entity, CancellationToken cancellationToken = default)
         {
             if (entity == null)
@@ -39,11 +51,11 @@ namespace rian_p01_back.src.Services.Implementations
 
             var existingByEmail = await _usuarioRepository.GetByEmailAsync(entity.Email, cancellationToken);
             if (existingByEmail != null)
-                throw new InvalidOperationException("O e-mail já está em uso por outro usuário");
+                throw new InvalidOperationException("Usuário já cadastrado");
 
             var existingByCpf = await _usuarioRepository.GetByCpfAsync(entity.CPF, cancellationToken);
             if (existingByCpf != null)
-                throw new InvalidOperationException("O CPF já está em uso por outro usuário");
+                throw new InvalidOperationException("Usuário já cadastrado");
 
             if (string.IsNullOrWhiteSpace(entity.Senha))
                 throw new ArgumentException("A senha não pode ser nula ou vazia", nameof(entity.Senha));
@@ -62,12 +74,12 @@ namespace rian_p01_back.src.Services.Implementations
             ?? throw new InvalidOperationException("Usuário não encontrado para atualizar");
 
             var existingByEmail = await _usuarioRepository.GetByEmailAsync(entity.Email, cancellationToken);
-            if (existingByEmail != null && existingByEmail.Id != entity.Id)
-                throw new InvalidOperationException("O e-mail já está em uso por outro usuário");
+                if (existingByEmail != null && existingByEmail.Id != entity.Id)
+                    throw new InvalidOperationException("Usuário já cadastrado");
 
             var existingByCpf = await _usuarioRepository.GetByCpfAsync(entity.CPF, cancellationToken);
-            if (existingByCpf != null && existingByCpf.Id != entity.Id)
-                throw new InvalidOperationException("O CPF já está em uso por outro usuário");
+                if (existingByCpf != null && existingByCpf.Id != entity.Id)
+                    throw new InvalidOperationException("Usuário já cadastrado");
 
             if (string.IsNullOrWhiteSpace(entity.Senha))
             {

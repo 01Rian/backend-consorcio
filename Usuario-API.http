@@ -1,0 +1,86 @@
+
+### Configurar variável de ambiente
+@host = http://localhost:5297
+
+### Criar novo usuário e extrair token
+POST {{host}}/api/Usuario
+Content-Type: application/json
+
+{
+  "nome": "Carlos Pereira",
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaSegura789",
+  "cpf": "321.654.987-00",
+  "telefone": "(31) 5678-1234",
+  "celular": "(31) 98765-4321",
+  "dataNascimento": "1988-08-20",
+  "endereco": {
+    "logradouro": "Rua das Palmeiras, 123",
+    "numero": "123",
+    "complemento": "Apto 202",
+    "bairro": "Centro",
+    "cidade": "Belo Horizonte",
+    "estado": "MG",
+    "cep": "30110-050"
+  },
+  "ativo": true
+}
+
+### Login do usuário
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaSegura789"
+}
+
+### Extrair o token da resposta do usuário criado
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI0IiwiZW1haWwiOiJjYXJsb3MucGVyZWlyYUBleGVtcGxvLmNvbSIsIm5hbWUiOiJDYXJsb3MgUGVyZWlyYSIsIm5iZiI6MTc1NTE4MjE1NSwiZXhwIjoxNzU1MTg1NzU1LCJpc3MiOiJzZXVpc3N1ZXIiLCJhdWQiOiJzZXVhdWRpZW5jZSJ9.LShf3eR4Bf--hXXzOLcEe_wqWJirhgr_8MmrOyqmw40
+GET {{host}}/api/Usuario
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Obter usuário por ID (protegido)
+GET {{host}}/api/Usuario/1
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Obter usuário por email (protegido)
+GET {{host}}/api/Usuario/email/usuario@exemplo.com
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Obter usuário por CPF (protegido)
+GET {{host}}/api/Usuario/cpf/123.456.789-00
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Atualizar usuário (protegido)
+PUT {{host}}/api/Usuario/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João Silva Santos",
+  "email": "joao.santos@exemplo.com",
+  "cpf": "123.456.789-00",
+  "telefone": "(11) 1234-5678",
+  "celular": "(11) 98765-4321",
+  "dataNascimento": "1990-01-01",
+  "endereco": {
+    "logradouro": "Rua das Flores, 456",
+    "numero": "456",
+    "complemento": "Casa",
+    "bairro": "Jardim",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "01234-890"
+  },
+  "ativo": false
+}
+
+### Excluir usuário (protegido)
+DELETE {{host}}/api/Usuario/1
+Accept: application/json
+Authorization: Bearer {{token}}
