@@ -33,6 +33,8 @@ builder.Services.AddScoped<IConsorcioService, ConsorcioService>();
 builder.Services.AddScoped<ICotasService, CotasService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
+builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -45,5 +47,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
 
 app.Run();
