@@ -130,5 +130,36 @@ namespace rian_p01_back.src.Services.Implementations
             return await base.UpdateAsync(entity, cancellationToken);
         }
 
+        public async Task<IEnumerable<Cotas>> GetAvailableCotasAsync(int consorcioId, CancellationToken cancellationToken = default)
+        {
+            if (consorcioId <= 0)
+                throw new ArgumentException("O ConsorcioId deve ser maior que zero", nameof(consorcioId));
+
+            var cotasDoConsorcio = await _cotasRepository.GetByConsorcioAsync(consorcioId, cancellationToken);
+            return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo && c.Status == StatusCota.Ativo);
+        }
+
+        public async Task<bool> RemoveUsuarioFromCotaAsync(int cotaId, CancellationToken cancellationToken = default)
+        {
+            if (cotaId <= 0)
+                throw new ArgumentException("O ID da cota deve ser maior que zero", nameof(cotaId));
+
+            var cota = await _cotasRepository.GetByIdAsync(cotaId, cancellationToken);
+            if (cota == null)
+                return false;
+
+            if (cota.UsuarioId == null)
+                throw new InvalidOperationException("Esta cota não está atribuída a nenhum usuário");
+
+            if (cota.ValorPago > 0 || cota.ParcelasPagas > 0)
+                throw new InvalidOperationException("Não é possível remover usuário de uma cota com pagamentos registrados");
+
+            cota.UsuarioId = null;
+            cota.DataAtualizacao = DateTime.Now;
+
+            await _cotasRepository.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
     }
 }

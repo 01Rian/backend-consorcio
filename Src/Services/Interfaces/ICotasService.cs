@@ -11,5 +11,7 @@ namespace rian_p01_back.src.Services.Interfaces
         Task<IEnumerable<Cotas>> GetActiveAsync(CancellationToken cancellationToken = default);
         Task<bool> ContemplateAsync(int cotaId, CancellationToken cancellationToken = default);
         Task<bool> RegisterPaymentAsync(int cotaId, decimal valorPago, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Cotas>> GetAvailableCotasAsync(int consorcioId, CancellationToken cancellationToken = default);
+        Task<bool> RemoveUsuarioFromCotaAsync(int cotaId, CancellationToken cancellationToken = default);
     }
 }
