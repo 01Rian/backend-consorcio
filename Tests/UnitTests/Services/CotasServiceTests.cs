@@ -353,5 +353,109 @@ namespace UnitTests.Services
             Assert.NotNull(result);
             Assert.True(result.DataAtualizacao > DateTime.MinValue);
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task GetAvailableCotasAsync_ComConsorcioIdInvalido_DeveLancarArgumentException(int consorcioId)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.GetAvailableCotasAsync(consorcioId));
+        }
+
+        [Fact]
+        public async Task GetAvailableCotasAsync_ComConsorcioValido_DeveRetornarCotasDisponiveis()
+        {
+            // Arrange
+            var consorcioId = 1;
+            var cotas = new List<Cotas>
+            {
+                new Cotas { Id = 1, UsuarioId = null, Ativo = true, Status = StatusCota.Ativo },
+                new Cotas { Id = 2, UsuarioId = 5, Ativo = true, Status = StatusCota.Ativo },
+                new Cotas { Id = 3, UsuarioId = null, Ativo = false, Status = StatusCota.Ativo }
+            };
+
+            _mockRepository.Setup(r => r.GetByConsorcioAsync(consorcioId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cotas);
+
+            // Act
+            var result = (await _service.GetAvailableCotasAsync(consorcioId)).ToList();
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal(1, result[0].Id);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task RemoveUsuarioFromCotaAsync_ComCotaIdInvalido_DeveLancarArgumentException(int cotaId)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.RemoveUsuarioFromCotaAsync(cotaId));
+        }
+
+        [Fact]
+        public async Task RemoveUsuarioFromCotaAsync_ComCotaInexistente_DeveRetornarFalse()
+        {
+            // Arrange
+            var cotaId = 999;
+            _mockRepository.Setup(r => r.GetByIdAsync(cotaId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Cotas)null!);
+
+            // Act
+            var result = await _service.RemoveUsuarioFromCotaAsync(cotaId);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task RemoveUsuarioFromCotaAsync_ComCotaSemUsuario_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.UsuarioId = null;
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RemoveUsuarioFromCotaAsync(cota.Id));
+        }
+
+        [Fact]
+        public async Task RemoveUsuarioFromCotaAsync_ComCotaComPagamentos_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.UsuarioId = 5;
+            cota.ValorPago = 100;
+            cota.ParcelasPagas = 1;
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RemoveUsuarioFromCotaAsync(cota.Id));
+        }
+
+        [Fact]
+        public async Task RemoveUsuarioFromCotaAsync_ComCotaValida_DeveRemoverUsuario()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.UsuarioId = 5;
+            cota.ValorPago = 0;
+            cota.ParcelasPagas = 0;
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _service.RemoveUsuarioFromCotaAsync(cota.Id);
+
+            // Assert
+            Assert.True(result);
+            Assert.Null(cota.UsuarioId);
+            _mockRepository.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }
