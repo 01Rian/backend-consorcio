@@ -81,10 +81,20 @@ namespace rian_p01_back.src.Services.Implementations
             cota.ParcelasPagas++;
             cota.DataAtualizacao = DateTime.Now;
 
-            var valorTotalEsperado = cota.ValorParcela * cota.Consorcio?.PrazoMeses ?? 0;
-            if (cota.ValorPago >= valorTotalEsperado && cota.Status != StatusCota.Quitado)
+            var prazo = cota.Consorcio?.PrazoMeses;
+            if (prazo == null || prazo <= 0)
+            {
+                // Não decidir quitação sem prazo válido — apenas salva o pagamento
+                await _cotasRepository.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+
+            var valorTotalEsperado = decimal.Round(cota.ValorParcela * prazo.Value, 2);
+
+            if ((cota.ValorPago >= valorTotalEsperado || cota.ParcelasPagas >= prazo.Value) && cota.Status != StatusCota.Quitado)
             {
                 cota.Status = StatusCota.Quitado;
+                cota.Ativo = false;
             }
 
             await _cotasRepository.SaveChangesAsync(cancellationToken);
@@ -128,6 +138,37 @@ namespace rian_p01_back.src.Services.Implementations
 
             entity.DataAtualizacao = DateTime.Now;
             return await base.UpdateAsync(entity, cancellationToken);
+        }
+
+        public async Task<IEnumerable<Cotas>> GetAvailableCotasAsync(int consorcioId, CancellationToken cancellationToken = default)
+        {
+            if (consorcioId <= 0)
+                throw new ArgumentException("O ConsorcioId deve ser maior que zero", nameof(consorcioId));
+
+            var cotasDoConsorcio = await _cotasRepository.GetByConsorcioAsync(consorcioId, cancellationToken);
+            return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo && c.Status == StatusCota.Ativo);
+        }
+
+        public async Task<bool> RemoveUsuarioFromCotaAsync(int cotaId, CancellationToken cancellationToken = default)
+        {
+            if (cotaId <= 0)
+                throw new ArgumentException("O ID da cota deve ser maior que zero", nameof(cotaId));
+
+            var cota = await _cotasRepository.GetByIdAsync(cotaId, cancellationToken);
+            if (cota == null)
+                return false;
+
+            if (cota.UsuarioId == null)
+                throw new InvalidOperationException("Esta cota não está atribuída a nenhum usuário");
+
+            if (cota.ValorPago > 0 || cota.ParcelasPagas > 0)
+                throw new InvalidOperationException("Não é possível remover usuário de uma cota com pagamentos registrados");
+
+            cota.UsuarioId = null;
+            cota.DataAtualizacao = DateTime.Now;
+
+            await _cotasRepository.SaveChangesAsync(cancellationToken);
+            return true;
         }
 
     }
