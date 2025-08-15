@@ -3,19 +3,22 @@ using Moq;
 using rian_p01_back.src.Data.Repositories.Interfaces;
 using rian_p01_back.src.Models.Entities;
 using rian_p01_back.src.Services.Implementations;
+using rian_p01_back.src.Services.Interfaces;
 
 namespace UnitTests.Services
 {
     public class ConsorcioServiceTests
     {
         private readonly Mock<IConsorcioRepository> _mockRepository;
+        private readonly Mock<ICotasService> _mockCotasService;
         private readonly ConsorcioService _service;
         private readonly Faker<Consorcio> _faker;
 
         public ConsorcioServiceTests()
         {
             _mockRepository = new Mock<IConsorcioRepository>();
-            _service = new ConsorcioService(_mockRepository.Object);
+            _mockCotasService = new Mock<ICotasService>();
+            _service = new ConsorcioService(_mockRepository.Object, _mockCotasService.Object);
             _faker = new Faker<Consorcio>()
                 .RuleFor(c => c.Id, f => f.Random.Int(1, 1000))
                 .RuleFor(c => c.Nome, f => f.Commerce.ProductName())
@@ -158,6 +161,99 @@ namespace UnitTests.Services
             Assert.NotNull(result);
             Assert.True(result.DataAtualizacao > DateTime.MinValue);
             Assert.Equal(consorcio.DataInicio.AddMonths(consorcio.PrazoMeses).Date, result.DataTermino.Date);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task AssignCotaToUsuarioAsync_ComCotaIdInvalido_DeveLancarArgumentException(int cotaId)
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.AssignCotaToUsuarioAsync(cotaId, 1));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task AssignCotaToUsuarioAsync_ComUsuarioIdInvalido_DeveLancarArgumentException(int usuarioId)
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.AssignCotaToUsuarioAsync(1, usuarioId));
+        }
+
+        [Fact]
+        public async Task AssignCotaToUsuarioAsync_ComCotaInexistente_DeveLancarArgumentException()
+        {
+            // Arrange
+            var cotaId = 999;
+            _mockCotasService.Setup(c => c.GetByIdAsync(cotaId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Cotas)null!);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _service.AssignCotaToUsuarioAsync(cotaId, 1));
+            Assert.Contains("Cota", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public async Task AssignCotaToUsuarioAsync_ComCotaJaAtribuida_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = new Cotas { Id = 1, UsuarioId = 10 };
+            _mockCotasService.Setup(c => c.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AssignCotaToUsuarioAsync(cota.Id, 2));
+        }
+
+        [Fact]
+        public async Task AssignCotaToUsuarioAsync_ComDadosValidos_DeveAtribuirCotaAoUsuario()
+        {
+            // Arrange
+            var cota = new Cotas { Id = 1, UsuarioId = null };
+            _mockCotasService.Setup(c => c.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+            _mockCotasService.Setup(c => c.UpdateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()))
+                .Returns((Cotas updated, CancellationToken ct) => Task.FromResult(updated));
+
+            // Act
+            var result = await _service.AssignCotaToUsuarioAsync(cota.Id, 5);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(5, cota.UsuarioId);
+            _mockCotasService.Verify(m => m.UpdateAsync(It.Is<Cotas>(x => x.Id == cota.Id && x.UsuarioId == 5), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task GetAvailableCotasAsync_ComConsorcioIdInvalido_DeveLancarArgumentException(int consorcioId)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.GetAvailableCotasAsync(consorcioId));
+        }
+
+        [Fact]
+        public async Task GetAvailableCotasAsync_ComConsorcioValido_DeveRetornarCotasDisponiveis()
+        {
+            // Arrange
+            var consorcioId = 1;
+            var cotas = new List<Cotas>
+            {
+                new Cotas { Id = 1, UsuarioId = null, Ativo = true },
+                new Cotas { Id = 2, UsuarioId = 5, Ativo = true },
+                new Cotas { Id = 3, UsuarioId = null, Ativo = false }
+            };
+
+            _mockCotasService.Setup(c => c.GetByConsorcioAsync(consorcioId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cotas);
+
+            // Act
+            var result = (await _service.GetAvailableCotasAsync(consorcioId)).ToList();
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal(1, result[0].Id);
         }
     }
 }
