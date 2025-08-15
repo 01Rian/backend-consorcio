@@ -81,10 +81,20 @@ namespace rian_p01_back.src.Services.Implementations
             cota.ParcelasPagas++;
             cota.DataAtualizacao = DateTime.Now;
 
-            var valorTotalEsperado = cota.ValorParcela * cota.Consorcio?.PrazoMeses ?? 0;
-            if (cota.ValorPago >= valorTotalEsperado && cota.Status != StatusCota.Quitado)
+            var prazo = cota.Consorcio?.PrazoMeses;
+            if (prazo == null || prazo <= 0)
+            {
+                // Não decidir quitação sem prazo válido — apenas salva o pagamento
+                await _cotasRepository.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+
+            var valorTotalEsperado = decimal.Round(cota.ValorParcela * prazo.Value, 2);
+
+            if ((cota.ValorPago >= valorTotalEsperado || cota.ParcelasPagas >= prazo.Value) && cota.Status != StatusCota.Quitado)
             {
                 cota.Status = StatusCota.Quitado;
+                cota.Ativo = false;
             }
 
             await _cotasRepository.SaveChangesAsync(cancellationToken);
