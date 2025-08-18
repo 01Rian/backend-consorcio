@@ -57,14 +57,5 @@ namespace rian_p01_back.src.Services.Implementations
             _repository.Remove(entity);
             await _repository.SaveChangesAsync(cancellationToken);
         }
-
-        public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
-        {
-            if (entity == null)
-                throw new ArgumentNullException(nameof(entity));
-
-            _repository.Remove(entity);
-            await _repository.SaveChangesAsync(cancellationToken);
-        }
     }
 }

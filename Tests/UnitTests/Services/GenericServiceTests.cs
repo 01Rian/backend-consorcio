@@ -181,29 +181,5 @@ namespace UnitTests.Services
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteAsync(entityId));
         }
-
-        [Fact]
-        public async Task DeletarAsync_PorEntidade_QuandoEntidadeEValida_DeveRemoverEntidade()
-        {
-            // Arrange
-            var entity = _faker.Generate();
-            _mockRepository.Setup(r => r.Remove(entity));
-            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Act
-            await _service.DeleteAsync(entity);
-
-            // Assert
-            _mockRepository.Verify(r => r.Remove(entity), Times.Once);
-            _mockRepository.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeletarAsync_PorEntidade_QuandoEntidadeNula_DeveLancarArgumentNullException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DeleteAsync(null!));
-        }
     }
 }
