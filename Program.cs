@@ -7,6 +7,7 @@ using rian_p01_back.src.Data.Repositories.Interfaces;
 using rian_p01_back.src.Data.Repositories.Implementations;
 using rian_p01_back.src.Services.Interfaces;
 using rian_p01_back.src.Services.Implementations;
+using rian_p01_back.Src.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
