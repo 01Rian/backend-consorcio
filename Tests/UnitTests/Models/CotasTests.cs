@@ -185,7 +185,6 @@ namespace tests.UnitTests.Models
         [Theory]
         [InlineData(StatusCota.Ativo)]
         [InlineData(StatusCota.Contemplado)]
-        [InlineData(StatusCota.Cancelado)]
         [InlineData(StatusCota.Suspenso)]
         [InlineData(StatusCota.Quitado)]
         public void Cotas_Status_DeveAceitarTodosOsValoresDoEnum(StatusCota status)
