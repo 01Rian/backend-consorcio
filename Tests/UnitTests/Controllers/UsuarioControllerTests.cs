@@ -82,7 +82,7 @@ namespace UnitTests.Controllers
         }
 
         [Fact]
-        public async Task Create_ComInvalidOperationException_DeveRetornarConflict()
+        public async Task Create_ComInvalidOperationException_DeveLancarInvalidOperationException()
         {
             // Arrange
             var request = _createRequestFaker.Generate();
@@ -91,16 +91,13 @@ namespace UnitTests.Controllers
             _mockUsuarioService.Setup(s => s.CreateAsync(It.IsAny<Usuario>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException(errorMessage));
 
-            // Act
-            var result = await _controller.Create(request);
-
-            // Assert
-            var conflictResult = Assert.IsType<ConflictObjectResult>(result.Result);
-            Assert.Contains(errorMessage, conflictResult.Value?.ToString());
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _controller.Create(request));
+            Assert.Equal(errorMessage, exception.Message);
         }
 
         [Fact]
-        public async Task Create_ComArgumentException_DeveRetornarBadRequest()
+        public async Task Create_ComArgumentException_DeveLancarArgumentException()
         {
             // Arrange
             var request = _createRequestFaker.Generate();
@@ -109,12 +106,9 @@ namespace UnitTests.Controllers
             _mockUsuarioService.Setup(s => s.CreateAsync(It.IsAny<Usuario>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ArgumentException(errorMessage));
 
-            // Act
-            var result = await _controller.Create(request);
-
-            // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-            Assert.Contains(errorMessage, badRequestResult.Value?.ToString());
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => _controller.Create(request));
+            Assert.Equal(errorMessage, exception.Message);
         }
 
         #endregion
