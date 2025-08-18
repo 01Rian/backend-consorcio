@@ -44,8 +44,42 @@ namespace rian_p01_back.src.Services.Implementations
             return await FindAsync(c => c.Ativo && c.Status == StatusCota.Ativo, cancellationToken);
         }
 
+        public async Task<bool> RegisterPaymentAsync(int cotaId, decimal valorPago, CancellationToken cancellationToken = default)
+        {
+            if (valorPago <= 0)
+                throw new ArgumentException("O valor pago deve ser maior que zero", nameof(valorPago));
+
+            var cota = await _cotasRepository.GetByIdAsync(cotaId, cancellationToken);
+
+            if (cota == null)
+                return false;
+
+            if (!cota.Ativo)
+                throw new InvalidOperationException("Não é possível registrar pagamento para uma cota inativa");
+
+            if (cota.Status == StatusCota.Quitado)
+                throw new InvalidOperationException("Não é possível registrar pagamento para uma cota já quitada");
+
+            var valorParcela = decimal.Round(cota.ValorParcela, 2);
+            var pagamento = decimal.Round(valorPago, 2);
+            var parcelasAdicionadas = CalculateParcelToAdd(pagamento, valorParcela);
+
+            var cotaConsorcio = await _cotasRepository.GetByConsorcioAsync(cota.ConsorcioId, cancellationToken);
+            var prazoConsorcio = cotaConsorcio.FirstOrDefault()?.Consorcio?.PrazoMeses;
+
+            ValidatePaymentTerm(cota, parcelasAdicionadas, prazoConsorcio);
+
+            UpdateCotaWithPayment(cota, parcelasAdicionadas, pagamento, prazoConsorcio);
+
+            await _cotasRepository.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
         public async Task<bool> ContemplateAsync(int cotaId, CancellationToken cancellationToken = default)
         {
+            if (cotaId <= 0)
+                throw new ArgumentException("ID deve ser maior que zero", nameof(cotaId));
+
             var cota = await _cotasRepository.GetByIdAsync(cotaId, cancellationToken);
             if (cota == null)
                 return false;
@@ -61,44 +95,52 @@ namespace rian_p01_back.src.Services.Implementations
             cota.Status = StatusCota.Contemplado;
             cota.DataAtualizacao = DateTime.Now;
 
+            _cotasRepository.Update(cota);
             await _cotasRepository.SaveChangesAsync(cancellationToken);
+
             return true;
         }
 
-        public async Task<bool> RegisterPaymentAsync(int cotaId, decimal valorPago, CancellationToken cancellationToken = default)
+
+
+    private static int CalculateParcelToAdd(decimal pagamento, decimal valorParcela)
         {
-            if (valorPago <= 0)
-                throw new ArgumentException("O valor pago deve ser maior que zero", nameof(valorPago));
+            if (pagamento < valorParcela)
+                throw new InvalidOperationException("O valor pago não pode ser menor que o valor da parcela");
 
-            var cota = await _cotasRepository.GetByIdAsync(cotaId, cancellationToken);
-            if (cota == null)
-                return false;
+            var parcelasDecimal = pagamento / valorParcela;
+            if (decimal.Truncate(parcelasDecimal) != parcelasDecimal)
+                throw new InvalidOperationException("Pagamento inválido: deve ser igual ao valor da(s) parcela(s) (múltiplo exato).");
 
-            if (!cota.Ativo)
-                throw new InvalidOperationException("Não é possível registrar pagamento para uma cota inativa");
+            return (int)parcelasDecimal;
+        }
 
-            cota.ValorPago += valorPago;
-            cota.ParcelasPagas++;
+    
+
+    private static void ValidatePaymentTerm(Cotas cota, int parcelasAdicionadas, int? prazo)
+        {
+            if (!prazo.HasValue || prazo.Value <= 0)
+                return;
+
+            if (cota.ParcelasPagas >= prazo.Value)
+                throw new InvalidOperationException("Esta cota já está quitada. Não é possível registrar mais pagamentos.");
+
+            var parcelasRestantes = prazo.Value - cota.ParcelasPagas;
+            if (parcelasAdicionadas > parcelasRestantes)
+                throw new InvalidOperationException($"Não é possível pagar {parcelasAdicionadas} parcela(s). Restam apenas {parcelasRestantes} parcela(s) para quitar esta cota.");
+        }
+
+    private static void UpdateCotaWithPayment(Cotas cota, int parcelasAdicionadas, decimal pagamento, int? prazo)
+        {
+            cota.ParcelasPagas += parcelasAdicionadas;
+            cota.ValorPago += pagamento;
             cota.DataAtualizacao = DateTime.Now;
 
-            var prazo = cota.Consorcio?.PrazoMeses;
-            if (prazo == null || prazo <= 0)
-            {
-                // Não decidir quitação sem prazo válido — apenas salva o pagamento
-                await _cotasRepository.SaveChangesAsync(cancellationToken);
-                return true;
-            }
-
-            var valorTotalEsperado = decimal.Round(cota.ValorParcela * prazo.Value, 2);
-
-            if ((cota.ValorPago >= valorTotalEsperado || cota.ParcelasPagas >= prazo.Value) && cota.Status != StatusCota.Quitado)
+            if (prazo.HasValue && cota.ParcelasPagas >= prazo.Value)
             {
                 cota.Status = StatusCota.Quitado;
                 cota.Ativo = false;
             }
-
-            await _cotasRepository.SaveChangesAsync(cancellationToken);
-            return true;
         }
 
         public override async Task<Cotas> CreateAsync(Cotas entity, CancellationToken cancellationToken = default)
@@ -138,15 +180,6 @@ namespace rian_p01_back.src.Services.Implementations
 
             entity.DataAtualizacao = DateTime.Now;
             return await base.UpdateAsync(entity, cancellationToken);
-        }
-
-        public async Task<IEnumerable<Cotas>> GetAvailableCotasAsync(int consorcioId, CancellationToken cancellationToken = default)
-        {
-            if (consorcioId <= 0)
-                throw new ArgumentException("O ConsorcioId deve ser maior que zero", nameof(consorcioId));
-
-            var cotasDoConsorcio = await _cotasRepository.GetByConsorcioAsync(consorcioId, cancellationToken);
-            return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo && c.Status == StatusCota.Ativo);
         }
 
         public async Task<bool> RemoveUsuarioFromCotaAsync(int cotaId, CancellationToken cancellationToken = default)
