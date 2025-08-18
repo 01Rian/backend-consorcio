@@ -8,5 +8,6 @@ namespace rian_p01_back.src.Services.Interfaces
         Task<IEnumerable<Consorcio>> GetActiveAsync(CancellationToken cancellationToken = default);
         Task<bool> AssignCotaToUsuarioAsync(int cotaId, int usuarioId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Cotas>> GetAvailableCotasAsync(int consorcioId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Cotas>> AddCotasAsync(int consorcioId, int quantidade, CancellationToken cancellationToken = default);
     }
 }
