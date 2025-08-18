@@ -1,0 +1,409 @@
+### Configurar variável de ambiente
+@host = http://localhost:5297
+
+### Fazer login para obter token
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaSegura789"
+}
+
+### Definir token
+@token = 
+
+### ==================================================
+### TESTES DE VALIDAÇÃO E CASOS DE ERRO
+### ==================================================
+
+### ERRO 1: Criar consórcio com valor do bem inválido (deve retornar 400)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Teste Erro",
+  "codigo": "ERR001",
+  "valorBem": -1000.00,
+  "quantidadeCotas": 10,
+  "prazoMeses": 24,
+  "taxaAdministracao": 5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2024-01-01T00:00:00"
+}
+
+### ERRO 2: Criar consórcio com quantidade de cotas inválida (deve retornar 400)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Teste Erro 2",
+  "codigo": "ERR002",
+  "valorBem": 50000.00,
+  "quantidadeCotas": 0,
+  "prazoMeses": 24,
+  "taxaAdministracao": 5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2024-01-01T00:00:00"
+}
+
+### ERRO 3: Criar consórcio com prazo inválido (deve retornar 400)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Teste Erro 3",
+  "codigo": "ERR003",
+  "valorBem": 50000.00,
+  "quantidadeCotas": 10,
+  "prazoMeses": -12,
+  "taxaAdministracao": 5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2024-01-01T00:00:00"
+}
+
+### ERRO 4: Criar consórcio com taxa de administração negativa (deve retornar 400)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Teste Erro 4",
+  "codigo": "ERR004",
+  "valorBem": 50000.00,
+  "quantidadeCotas": 10,
+  "prazoMeses": 24,
+  "taxaAdministracao": -5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2024-01-01T00:00:00"
+}
+
+### ERRO 5: Buscar consórcio inexistente (deve retornar 404)
+GET {{host}}/api/consorcio/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 6: Atribuir cota com ID de cota inválido (deve retornar 400)
+POST {{host}}/api/consorcio/assign-cota
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cotaId": 0,
+  "usuarioId": 4
+}
+
+### ERRO 7: Atribuir cota com ID de usuário inválido (deve retornar 400)
+POST {{host}}/api/consorcio/assign-cota
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cotaId": 1,
+  "usuarioId": 0
+}
+
+### ERRO 8: Atribuir cota inexistente (deve retornar 400)
+POST {{host}}/api/consorcio/assign-cota
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cotaId": 999,
+  "usuarioId": 4
+}
+
+### ERRO 9: Buscar cota inexistente (deve retornar 404)
+GET {{host}}/api/cotas/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 10: Registrar pagamento com valor negativo (deve retornar 400)
+POST {{host}}/api/cotas/1/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": -500.00
+}
+
+### ERRO 11: Registrar pagamento com valor zero (deve retornar 400)
+POST {{host}}/api/cotas/1/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": 0.00
+}
+
+### ERRO 12: Registrar pagamento em cota inexistente (deve retornar 404)
+POST {{host}}/api/cotas/999/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": 1000.00
+}
+
+### ERRO 13: Contemplar cota inexistente (deve retornar 404)
+POST {{host}}/api/cotas/999/contemplate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 14: Buscar cotas de consórcio inexistente (deve retornar lista vazia ou 400)
+GET {{host}}/api/cotas/by-consorcio/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 15: Buscar cotas de usuário inexistente (deve retornar lista vazia)
+GET {{host}}/api/cotas/by-usuario/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 16: Buscar cotas disponíveis de consórcio inexistente (deve retornar 400)
+GET {{host}}/api/cotas/disponiveis/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 17: Remover usuário de cota inexistente (deve retornar 404)
+DELETE {{host}}/api/cotas/999/remove-usuario
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 18: Atualizar cota com ID inconsistente (deve retornar 400)
+PUT {{host}}/api/cotas/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 999,
+  "numeroCota": "TEST-0001",
+  "valorParcela": 2000.00,
+  "valorPago": 0,
+  "parcelasPagas": 0,
+  "contemplada": false,
+  "status": 1,
+  "ativo": true,
+  "consorcioId": 1,
+  "usuarioId": null
+}
+
+### ERRO 19: Atualizar cota com valor de parcela inválido (deve retornar 400)
+PUT {{host}}/api/cotas/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "numeroCota": "TEST-0001",
+  "valorParcela": -100.00,
+  "valorPago": 0,
+  "parcelasPagas": 0,
+  "contemplada": false,
+  "status": 1,
+  "ativo": true,
+  "consorcioId": 1,
+  "usuarioId": null
+}
+
+### ERRO 20: Deletar consórcio inexistente (deve retornar 404)
+DELETE {{host}}/api/consorcio/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ==================================================
+### TESTES SEM AUTENTICAÇÃO (deve retornar 401)
+### ==================================================
+
+### ERRO 21: Tentar criar consórcio sem token (deve retornar 401)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+
+{
+  "nome": "Consórcio Sem Auth",
+  "codigo": "SA001",
+  "valorBem": 50000.00,
+  "quantidadeCotas": 10,
+  "prazoMeses": 24,
+  "taxaAdministracao": 5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2024-01-01T00:00:00"
+}
+
+### ERRO 22: Tentar buscar consórcio sem token (deve retornar 401)
+GET {{host}}/api/consorcio/1
+Accept: application/json
+
+### ERRO 23: Tentar buscar cota sem token (deve retornar 401)
+GET {{host}}/api/cotas/1
+Accept: application/json
+
+### ==================================================
+### TESTES DE VALIDAÇÃO - COTAS (consolidados)
+### ==================================================
+
+### ERRO 24: Tentar buscar cota com ID inválido (deve retornar 400)
+GET {{host}}/api/cotas/0
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 25: Tentar contemplar uma cota já contemplada (deve dar erro)
+POST {{host}}/api/cotas/1/contemplate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 26: Tentar registrar pagamento sem valor (deve dar erro de validação)
+POST {{host}}/api/cotas/2/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+}
+
+### ERRO 27: Tentar remover usuário de cota com pagamentos (deve dar erro)
+DELETE {{host}}/api/cotas/1/remove-user
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 28: Tentar buscar cotas de usuário inexistente
+GET {{host}}/api/cotas/by-user/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 29: Tentar atualizar status com valor inválido
+PUT {{host}}/api/cotas/1/update-status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": 999
+}
+
+### ERRO 30: Tentar atualizar status de cota inexistente
+PUT {{host}}/api/cotas/999/update-status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": 4
+}
+
+### ==================================================
+### TESTES DE VALIDAÇÃO - USUÁRIOS (consolidados)
+### ==================================================
+
+### ERRO 31: Criar usuário com email inválido (deve retornar 400)
+POST {{host}}/api/Usuario
+Content-Type: application/json
+
+{
+  "nome": "Teste Erro",
+  "email": "email-invalido",
+  "senha": "senhaSegura789",
+  "cpf": "321.654.987-00",
+  "telefone": "(31) 5678-1234",
+  "celular": "(31) 98765-4321",
+  "dataNascimento": "1988-08-20",
+  "endereco": {
+    "logradouro": "Rua das Palmeiras, 123",
+    "numero": "123",
+    "complemento": "Apto 202",
+    "bairro": "Centro",
+    "cidade": "Belo Horizonte",
+    "estado": "MG",
+    "cep": "30110-050"
+  },
+  "ativo": true
+}
+
+### ERRO 32: Criar usuário com CPF inválido (deve retornar 400)
+POST {{host}}/api/Usuario
+Content-Type: application/json
+
+{
+  "nome": "Teste Erro CPF",
+  "email": "teste.cpf@exemplo.com",
+  "senha": "senhaSegura789",
+  "cpf": "123.456.789-9999",
+  "telefone": "(31) 5678-1234",
+  "celular": "(31) 98765-4321",
+  "dataNascimento": "1988-08-20",
+  "endereco": {
+    "logradouro": "Rua das Palmeiras, 123",
+    "numero": "123",
+    "complemento": "Apto 202",
+    "bairro": "Centro",
+    "cidade": "Belo Horizonte",
+    "estado": "MG",
+    "cep": "30110-050"
+  },
+  "ativo": true
+}
+
+### ERRO 33: Login com email inexistente (deve retornar 401)
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "usuario.inexistente@exemplo.com",
+  "senha": "senhaQualquer"
+}
+
+### ERRO 34: Login com senha incorreta (deve retornar 401)
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaIncorreta"
+}
+
+### ERRO 35: Buscar usuário por email inexistente (deve retornar 404)
+GET {{host}}/api/Usuario/email/inexistente@exemplo.com
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 36: Buscar usuário por CPF inexistente (deve retornar 404)
+GET {{host}}/api/Usuario/cpf/000.000.000-00
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 37: Atualizar usuário inexistente (deve retornar 404)
+PUT {{host}}/api/Usuario/999
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Usuario Inexistente",
+  "email": "inexistente@exemplo.com",
+  "cpf": "123.456.789-00",
+  "telefone": "(11) 1234-5678",
+  "celular": "(11) 98765-4321",
+  "dataNascimento": "1990-01-01",
+  "endereco": {
+    "logradouro": "Rua das Flores, 456",
+    "numero": "456",
+    "complemento": "Casa",
+    "bairro": "Jardim",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "01234-890"
+  },
+  "ativo": false
+}
+
+### ERRO 38: Excluir usuário inexistente (deve retornar 404)
+DELETE {{host}}/api/Usuario/999
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ERRO 39: Tentar criar usuário com dados obrigatórios ausentes (deve retornar 400)
+POST {{host}}/api/Usuario
+Content-Type: application/json
+
+{
+  "email": "teste.incompleto@exemplo.com"
+}

@@ -1,0 +1,97 @@
+### Fluxo End-to-End: Criar usuário -> Login -> Criar consórcio (2 cotas) -> Atribuir cota -> Registrar pagamento -> Contemplar
+@host = http://localhost:5297
+
+### Passo 1 — Criar usuário
+POST {{host}}/api/Usuario
+Content-Type: application/json
+
+{
+  "nome": "Teste Fluxo",
+  "email": "teste.fluxo+0001@exemplo.com",
+  "senha": "SenhaFluxo123",
+  "cpf": "000.000.000-00",
+  "telefone": "(11) 1111-1111",
+  "celular": "(11) 99999-9999",
+  "dataNascimento": "1990-01-01",
+  "endereco": {
+    "logradouro": "Rua Exemplo",
+    "numero": "100",
+    "complemento": "Fluxo",
+    "bairro": "Centro",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "01000-000"
+  },
+  "ativo": true
+}
+
+### => Após executar: copie o campo `id` da resposta e defina a variável abaixo (substitua o valor):
+@usuarioId = 4
+
+### Passo 2 — Login (gera token)
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "teste.fluxo+0001@exemplo.com",
+  "senha": "SenhaFluxo123"
+}
+
+### => Após executar: copie o token JWT do campo de resposta e defina a variável abaixo (substitua o valor):
+@token = 
+
+### Passo 3 — Criar consórcio com 2 cotas
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Fluxo Teste",
+  "codigo": "FLUXO2025",
+  "valorBem": 50000.00,
+  "quantidadeCotas": 2,
+  "prazoMeses": 12,
+  "taxaAdministracao": 5.00,
+  "fundoReserva": 500.00,
+  "dataInicio": "2025-01-01T00:00:00"
+}
+
+### => Após executar: copie o `id` do consórcio criado e defina abaixo:
+@consorcioId = 19
+
+### Passo 4 — Buscar consórcio com suas cotas (para obter os IDs das cotas)
+GET {{host}}/api/consorcio/{{consorcioId}}/with-cotas
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### => Na resposta haverá um array `cotas`. Copie o `id` de uma cota disponível e defina abaixo:
+@cotaId = 61
+
+### Passo 5 — Atribuir cota ao usuário
+POST {{host}}/api/consorcio/assign-cota
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cotaId": {{cotaId}},
+  "usuarioId": {{usuarioId}}
+}
+
+### Passo 6 — Registrar pagamento na cota atribuída
+POST {{host}}/api/cotas/{{cotaId}}/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": 4375.00
+}
+
+### Passo 7 — Contemplar a cota do usuário
+POST {{host}}/api/cotas/{{cotaId}}/contemplate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Verificação final buscar cotas do usuário para confirmar estado
+GET {{host}}/api/cotas/by-user/{{usuarioId}}
+Accept: application/json
+Authorization: Bearer {{token}}

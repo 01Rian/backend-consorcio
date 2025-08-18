@@ -1,0 +1,92 @@
+### Configurar variável de ambiente
+@host = http://localhost:5297
+
+### Fazer login para obter o token
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaSegura789"
+}
+
+### Extrair o token da resposta do login
+@token = 
+### ==================================================
+### OPERAÇÕES DE COTAS
+### ==================================================
+
+### 1. Buscar cota por ID
+GET {{host}}/api/cotas/48
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 2. Buscar cota com detalhes (incluindo consórcio e usuário)
+GET {{host}}/api/cotas/48/detailed
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 3. Buscar todas as cotas de um consórcio
+GET {{host}}/api/cotas/by-consorcio/10
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 4. Buscar todas as cotas de um usuário
+GET {{host}}/api/cotas/by-user/1
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 5. Buscar todas as cotas ativas
+GET {{host}}/api/cotas/active
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 6. Buscar todas as cotas contempladas
+GET {{host}}/api/cotas/contemplated
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 7. Registrar pagamento em uma cota
+POST {{host}}/api/cotas/24/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": 4166.67
+}
+### 8 Registrar pagamento de 2 parcelas
+POST {{host}}/api/cotas/24/register-payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorPago": 79999.8
+}
+
+### 9. Contemplar uma cota (simular sorteio)
+POST {{host}}/api/cotas/24/contemplate
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 10. Remover usuário de uma cota (apenas se não tiver pagamentos)
+DELETE {{host}}/api/cotas/3/remove-user
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 11. Suspender uma cota 
+PUT {{host}}/api/cotas/48/update-status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": 4
+}
+
+### 12. Reativar uma cota 
+PUT {{host}}/api/cotas/24/update-status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": 3
+}

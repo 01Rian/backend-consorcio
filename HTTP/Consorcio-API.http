@@ -1,0 +1,101 @@
+### Configurar variável de ambiente
+@host = http://localhost:5297
+
+### Fazer login para obter o token
+POST {{host}}/api/Usuario/login
+Content-Type: application/json
+
+{
+  "email": "carlos.pereira@exemplo.com",
+  "senha": "senhaSegura789"
+}
+
+### Extrair o token da resposta do login
+@token = 
+### ==================================================
+### OPERAÇÕES DE CONSÓRCIO
+### ==================================================
+
+### 1. Criar novo consórcio (com cotas automáticas)
+POST {{host}}/api/consorcio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Consórcio Imóvel Premium",
+  "codigo": "IMP2024",
+  "valorBem": 250000.00,
+  "quantidadeCotas": 2,
+  "prazoMeses": 60,
+  "taxaAdministracao": 15.00,
+  "fundoReserva": 2500.00,
+  "dataInicio": "2025-01-01T00:00:00"
+}
+
+### 2. Listar todos os consórcios ativos
+GET {{host}}/api/consorcio/active
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 3. Buscar consórcio por ID
+GET {{host}}/api/consorcio/17
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 4. Buscar consórcio com suas cotas
+GET {{host}}/api/consorcio/17/with-cotas
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 5. Buscar cotas disponíveis de um consórcio
+GET {{host}}/api/consorcio/17/available-cotas
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 6. Atribuir cota ao usuário
+POST {{host}}/api/consorcio/assign-cota
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cotaId": 23,
+  "usuarioId": 1
+}
+
+
+### 7. Atualizar consórcio
+PUT {{host}}/api/consorcio/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "nome": "Consórcio Imóvel Premium Plus",
+  "codigo": "IMP2024",
+  "valorBem": 280000.00,
+  "prazoMeses": 120,
+  "taxaAdministracao": 16.00,
+  "fundoReserva": 3000.00,
+  "dataInicio": "2024-01-01T00:00:00",
+  "ativo": true
+}
+
+
+### 8. Deletar consórcio (vai deletar as cotas também)
+DELETE {{host}}/api/consorcio/20
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 9. Adicionar cotas a um consórcio existente
+POST {{host}}/api/consorcio/17/cotas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantidade": 1
+}

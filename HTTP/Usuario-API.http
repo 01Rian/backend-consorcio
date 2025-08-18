@@ -2,7 +2,11 @@
 ### Configurar variável de ambiente
 @host = http://localhost:5297
 
-### Criar novo usuário e extrair token
+### ==================================================
+### OPERAÇÕES DE USUÁRIO
+### ==================================================
+
+### Criar novo usuário
 POST {{host}}/api/Usuario
 Content-Type: application/json
 
@@ -26,7 +30,7 @@ Content-Type: application/json
   "ativo": true
 }
 
-### Login do usuário
+### Fazer login
 POST {{host}}/api/Usuario/login
 Content-Type: application/json
 
@@ -35,8 +39,10 @@ Content-Type: application/json
   "senha": "senhaSegura789"
 }
 
-### Extrair o token da resposta do usuário criado
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI0IiwiZW1haWwiOiJjYXJsb3MucGVyZWlyYUBleGVtcGxvLmNvbSIsIm5hbWUiOiJDYXJsb3MgUGVyZWlyYSIsIm5iZiI6MTc1NTE4MjE1NSwiZXhwIjoxNzU1MTg1NzU1LCJpc3MiOiJzZXVpc3N1ZXIiLCJhdWQiOiJzZXVhdWRpZW5jZSJ9.LShf3eR4Bf--hXXzOLcEe_wqWJirhgr_8MmrOyqmw40
+### Extrair o token da resposta do login
+@token = 
+
+### Listar todos os usuários (protegido)
 GET {{host}}/api/Usuario
 Accept: application/json
 Authorization: Bearer {{token}}
@@ -81,6 +87,6 @@ Authorization: Bearer {{token}}
 }
 
 ### Excluir usuário (protegido)
-DELETE {{host}}/api/Usuario/1
+DELETE {{host}}/api/Usuario/4
 Accept: application/json
 Authorization: Bearer {{token}}
