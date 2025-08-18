@@ -93,7 +93,7 @@ namespace rian_p01_back.src.Services.Implementations
                 throw new ArgumentException("O ID do consórcio deve ser maior que zero", nameof(consorcioId));
 
             var cotasDoConsorcio = await _cotasService.GetByConsorcioAsync(consorcioId, cancellationToken);
-            return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo);
+            return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo && c.Status == StatusCota.Ativo);
         }
 
         public async Task<IEnumerable<Cotas>> AddCotasAsync(int consorcioId, int quantidade, CancellationToken cancellationToken = default)

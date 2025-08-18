@@ -12,6 +12,7 @@ namespace rian_p01_back.src.Data.Repositories.Implementations
         {
             return await _dbSet.AsNoTracking()
                 .Where(c => c.ConsorcioId == consorcioId)
+                .Include(c => c.Consorcio)
                 .ToListAsync(cancellationToken);
         }
 

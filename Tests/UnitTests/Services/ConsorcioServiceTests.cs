@@ -247,9 +247,10 @@ namespace UnitTests.Services
             var consorcioId = 1;
             var cotas = new List<Cotas>
             {
-                new Cotas { Id = 1, UsuarioId = null, Ativo = true },
-                new Cotas { Id = 2, UsuarioId = 5, Ativo = true },
-                new Cotas { Id = 3, UsuarioId = null, Ativo = false }
+                new Cotas { Id = 1, UsuarioId = null, Ativo = true, Status = StatusCota.Ativo },
+                new Cotas { Id = 2, UsuarioId = 5, Ativo = true, Status = StatusCota.Ativo },
+                new Cotas { Id = 3, UsuarioId = null, Ativo = false, Status = StatusCota.Ativo },
+                new Cotas { Id = 4, UsuarioId = null, Ativo = true, Status = StatusCota.Suspenso }
             };
 
             _mockCotasService.Setup(c => c.GetByConsorcioAsync(consorcioId, It.IsAny<CancellationToken>()))

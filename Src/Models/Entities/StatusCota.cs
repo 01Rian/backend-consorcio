@@ -1,11 +1,7 @@
-namespace rian_p01_back.src.Models.Entities
+public enum StatusCota
 {
-    public enum StatusCota
-    {
-        Ativo = 1,
-        Contemplado = 2,
-        Cancelado = 3,
-        Suspenso = 4,
-        Quitado = 5
-    }
+    Ativo = 1,
+    Contemplado = 2,
+    Suspenso = 3,
+    Quitado = 4
 }

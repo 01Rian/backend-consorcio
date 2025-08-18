@@ -18,19 +18,22 @@ namespace rian_p01_back.Tests.Repositories
         public async Task GetByConsorcioAsync_DeveRetornarCotasCorretas()
         {
             // Arrange
+            var consorcio = new Consorcio { Nome = "Consorcio Teste" };
             var cota = _faker.Generate();
-            cota.ConsorcioId = 321;
+            cota.Consorcio = consorcio;
+
+            await Context.Set<Consorcio>().AddAsync(consorcio);
             await Context.Set<Cotas>().AddAsync(cota);
             await Context.SaveChangesAsync();
 
             // Act
             var repo = new CotasRepository(Context);
-            var result = await repo.GetByConsorcioAsync(321);
+            var result = await repo.GetByConsorcioAsync(consorcio.Id);
 
             // Assert
             Assert.NotNull(result);
             Assert.Single(result);
-            Assert.All(result, c => Assert.Equal(321, c.ConsorcioId));
+            Assert.All(result, c => Assert.Equal(consorcio.Id, c.ConsorcioId));
         }
 
         [Fact]
