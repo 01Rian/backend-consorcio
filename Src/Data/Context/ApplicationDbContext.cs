@@ -18,6 +18,19 @@ namespace rian_p01_back.src.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Usuario>().OwnsOne(u => u.Endereco);
+
+            modelBuilder.Entity<Cotas>(b =>
+            {
+                b.Property(e => e.ValorParcela).HasPrecision(18, 2);
+                b.Property(e => e.ValorPago).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Consorcio>(b =>
+            {
+                b.Property(e => e.ValorBem).HasPrecision(18, 2);
+                b.Property(e => e.TaxaAdministracao).HasPrecision(18, 2);
+                b.Property(e => e.FundoReserva).HasPrecision(18, 2);
+            });
         }
     }
 }
