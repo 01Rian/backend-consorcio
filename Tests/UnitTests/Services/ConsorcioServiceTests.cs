@@ -195,15 +195,22 @@ namespace UnitTests.Services
         }
 
         [Fact]
-        public async Task AssignCotaToUsuarioAsync_ComCotaJaAtribuida_DeveLancarInvalidOperationException()
+        public async Task AssignCotaToUsuarioAsync_ComCotaJaAtribuida_DeveReatribuirParaOutroUsuario()
         {
             // Arrange
             var cota = new Cotas { Id = 1, UsuarioId = 10 };
             _mockCotasService.Setup(c => c.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cota);
+            _mockCotasService.Setup(c => c.UpdateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()))
+                .Returns((Cotas updated, CancellationToken ct) => Task.FromResult(updated));
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AssignCotaToUsuarioAsync(cota.Id, 2));
+            // Act
+            var result = await _service.AssignCotaToUsuarioAsync(cota.Id, 2);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(2, cota.UsuarioId);
+            _mockCotasService.Verify(m => m.UpdateAsync(It.Is<Cotas>(x => x.Id == cota.Id && x.UsuarioId == 2), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -254,6 +261,42 @@ namespace UnitTests.Services
             // Assert
             Assert.Single(result);
             Assert.Equal(1, result[0].Id);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ComQuantidadeCotas_DeveCriarApenasQuantidadeDefinida()
+        {
+            // Arrange
+            var consorcio = _faker.Generate();
+            consorcio.QuantidadeCotas = 1;
+            consorcio.Cotas = new List<Cotas>();
+
+            _mockRepository.Setup(r => r.AddAsync(consorcio, It.IsAny<CancellationToken>())).ReturnsAsync(consorcio);
+            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+            var createdCotas = new List<Cotas>();
+            _mockCotasService.Setup(c => c.CreateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Cotas c, CancellationToken ct) => { createdCotas.Add(c); return c; });
+
+            // Act
+            var result = await _service.CreateAsync(consorcio);
+
+            // Assert
+            _mockCotasService.Verify(c => c.CreateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()), Times.Exactly(1));
+            Assert.Single(createdCotas);
+            Assert.Equal(consorcio.Codigo, createdCotas[0].NumeroCota.Split('-')[0]);
+            Assert.Equal(1, result.QuantidadeCotas);
+        }
+
+        [Fact]
+        public async Task CreateAsync_SemDataInicio_DeveLancarArgumentException()
+        {
+            // Arrange
+            var consorcio = _faker.Generate();
+            consorcio.DataInicio = DateTime.MinValue;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(consorcio));
         }
     }
 }

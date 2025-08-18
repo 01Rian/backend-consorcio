@@ -40,7 +40,7 @@ namespace rian_p01_back.src.Services.Implementations
             var consorcioCreated = await base.CreateAsync(entity, cancellationToken);
 
             // Cria as cotas automaticamente baseado na quantidade definida
-            await CreateCotasForConsorcioAsync(consorcioCreated, cancellationToken);
+            await CreateCotasForConsorcioAsync(consorcioCreated, consorcioCreated.QuantidadeCotas, cancellationToken);
 
             return consorcioCreated;
         }
@@ -74,8 +74,11 @@ namespace rian_p01_back.src.Services.Implementations
             if (cota == null)
                 throw new ArgumentException("Cota não encontrada", nameof(cotaId));
 
-            if (cota.UsuarioId != null)
-                throw new InvalidOperationException("Esta cota já está atribuída a um usuário");
+            if (!cota.Ativo)
+                throw new InvalidOperationException("Não é possível atribuir uma cota inativa");
+
+            if (cota.UsuarioId == usuarioId)
+                return true;
 
             cota.UsuarioId = usuarioId;
             cota.DataAtualizacao = DateTime.Now;
@@ -93,6 +96,64 @@ namespace rian_p01_back.src.Services.Implementations
             return cotasDoConsorcio.Where(c => c.UsuarioId == null && c.Ativo);
         }
 
+        public async Task<IEnumerable<Cotas>> AddCotasAsync(int consorcioId, int quantidade, CancellationToken cancellationToken = default)
+        {
+            if (consorcioId <= 0)
+                throw new ArgumentException("O ID do consórcio deve ser maior que zero", nameof(consorcioId));
+
+            if (quantidade <= 0)
+                throw new ArgumentException("A quantidade de cotas a adicionar deve ser maior que zero", nameof(quantidade));
+
+            var consorcio = await GetWithCotasAsync(consorcioId, cancellationToken);
+            if (consorcio == null)
+                throw new ArgumentException("Consórcio não encontrado", nameof(consorcioId));
+
+            return await CreateCotasForConsorcioAsync(consorcio, quantidade, cancellationToken);
+        }
+
+        private async Task<IEnumerable<Cotas>> CreateCotasForConsorcioAsync(Consorcio consorcio, int quantidade, CancellationToken cancellationToken = default)
+        {
+            if (consorcio == null)
+                throw new ArgumentNullException(nameof(consorcio));
+
+            if (quantidade <= 0)
+                throw new ArgumentException("A quantidade de cotas a criar deve ser maior que zero", nameof(quantidade));
+
+            // calcula valor da parcela considerando o percentual da taxa de administração
+            var valorTotal = consorcio.ValorBem * (1 + consorcio.TaxaAdministracao / 100m);
+            var valorParcela = Math.Round(valorTotal / consorcio.PrazoMeses, 2);
+
+            var cotasExistentes = consorcio.Cotas?.Count ?? 0;
+            var cotasCriadas = new List<Cotas>();
+
+            for (int i = 1; i <= quantidade; i++)
+            {
+                var index = cotasExistentes + i;
+                var cota = new Cotas
+                {
+                    NumeroCota = $"{consorcio.Codigo}-{index:D4}", // Formato: CODIGO-0001, CODIGO-0002, etc.
+                    ValorParcela = valorParcela,
+                    ValorPago = 0,
+                    ParcelasPagas = 0,
+                    Contemplada = false,
+                    DataContemplacao = null,
+                    Status = StatusCota.Ativo,
+                    Ativo = true,
+                    DataCadastro = DateTime.Now,
+                    ConsorcioId = consorcio.Id,
+                    UsuarioId = null // Cotas são criadas sem usuário, serão atribuídas posteriormente
+                };
+
+                await _cotasService.CreateAsync(cota, cancellationToken);
+                cotasCriadas.Add(cota);
+            }
+
+            consorcio.QuantidadeCotas = cotasExistentes + quantidade;
+            consorcio.DataAtualizacao = DateTime.Now;
+
+            await base.UpdateAsync(consorcio, cancellationToken);
+            return cotasCriadas;
+        }
 
         private void ValidateConsorcio(Consorcio entity)
         {
@@ -112,35 +173,8 @@ namespace rian_p01_back.src.Services.Implementations
 
                 case var e when e.FundoReserva < 0:
                     throw new ArgumentException("O fundo de reserva não pode ser negativo");
-            }
-        }
-
-        private async Task CreateCotasForConsorcioAsync(Consorcio consorcio, CancellationToken cancellationToken = default)
-        {
-            if (consorcio == null)
-                throw new ArgumentNullException(nameof(consorcio));
-
-            // Calcula o valor da parcela baseado no valor do bem dividido pelo prazo
-            var valorParcela = consorcio.ValorBem / consorcio.PrazoMeses;
-
-            for (int i = 1; i <= consorcio.QuantidadeCotas; i++)
-            {
-                var cota = new Cotas
-                {
-                    NumeroCota = $"{consorcio.Codigo}-{i:D4}", // Formato: CODIGO-0001, CODIGO-0002, etc.
-                    ValorParcela = valorParcela,
-                    ValorPago = 0,
-                    ParcelasPagas = 0,
-                    Contemplada = false,
-                    DataContemplacao = null,
-                    Status = StatusCota.Ativo,
-                    Ativo = true,
-                    DataCadastro = DateTime.Now,
-                    ConsorcioId = consorcio.Id,
-                    UsuarioId = null // Cotas são criadas sem usuário, serão atribuídas posteriormente
-                };
-
-                await _cotasService.CreateAsync(cota, cancellationToken);
+                case var e when e.DataInicio == DateTime.MinValue:
+                    throw new ArgumentException("A data de início é obrigatória");
             }
         }
     }
