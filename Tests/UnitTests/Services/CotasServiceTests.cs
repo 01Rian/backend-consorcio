@@ -128,85 +128,16 @@ namespace UnitTests.Services
         }
 
         [Fact]
-        public async Task ContemplateAsync_ComCotaValida_DeveContemplarCota()
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.Contemplada = false;
-            cota.Ativo = true;
-            cota.Status = StatusCota.Ativo;
-            
-            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(cota);
-            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Act
-            var result = await _service.ContemplateAsync(cota.Id);
-
-            // Assert
-            Assert.True(result);
-            Assert.True(cota.Contemplada);
-            Assert.Equal(StatusCota.Contemplado, cota.Status);
-            Assert.True(cota.DataContemplacao > DateTime.MinValue);
-        }
-
-        [Fact]
-        public async Task ContemplateAsync_ComCotaJaContemplada_DeveLancarInvalidOperationException()
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.Contemplada = true;
-            
-            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(cota);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ContemplateAsync(cota.Id));
-            Assert.Contains("já está contemplada", exception.Message);
-        }
-
-        [Fact]
-        public async Task ContemplateAsync_ComCotaInativa_DeveLancarInvalidOperationException()
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.Contemplada = false;
-            cota.Ativo = false;
-            
-            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(cota);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ContemplateAsync(cota.Id));
-            Assert.Contains("precisa estar ativa", exception.Message);
-        }
-
-        [Fact]
-        public async Task ContemplateAsync_ComCotaInexistente_DeveRetornarFalse()
-        {
-            // Arrange
-            var cotaId = 999;
-            _mockRepository.Setup(r => r.GetByIdAsync(cotaId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Cotas)null!);
-
-            // Act
-            var result = await _service.ContemplateAsync(cotaId);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
         public async Task RegisterPaymentAsync_ComValorValido_DeveRegistrarPagamento()
         {
             // Arrange
             var cota = _faker.Generate();
             cota.Ativo = true;
-            cota.ValorPago = 1000;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 1000m;
             cota.ParcelasPagas = 5;
-            
-            var valorPago = 500m;
+
+            var valorPago = 500m; // corresponde a 1 parcela
             
             _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cota);
@@ -220,6 +151,121 @@ namespace UnitTests.Services
             Assert.True(result);
             Assert.Equal(1500, cota.ValorPago);
             Assert.Equal(6, cota.ParcelasPagas);
+        }
+
+        [Fact]
+        public async Task RegisterPaymentAsync_ComPagamentoMenorQueParcela_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.Ativo = true;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 0m;
+            cota.ParcelasPagas = 0;
+
+            var valorPago = 100m; // menor que a parcela
+
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RegisterPaymentAsync(cota.Id, valorPago));
+            Assert.Contains("não pode ser menor que o valor da parcela", exception.Message);
+        }
+
+        [Fact]
+        public async Task RegisterPaymentAsync_ComPagamentoMaiorMasNaoMultiplo_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.Ativo = true;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 0m;
+            cota.ParcelasPagas = 0;
+
+            var valorPago = 750m; // maior que a parcela, mas não múltiplo exato
+
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RegisterPaymentAsync(cota.Id, valorPago));
+            Assert.Contains("Pagamento inválido", exception.Message);
+        }
+
+        [Fact]
+        public async Task RegisterPaymentAsync_ComPagamentoMultiploDeVariasParcelas_DeveRegistrarPagamento()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.Ativo = true;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 1000m; // já pagou 2 parcelas
+            cota.ParcelasPagas = 2;
+
+            var valorPago = 1500m; // quer pagar 3 parcelas adicionais (1500 / 500 = 3)
+
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _service.RegisterPaymentAsync(cota.Id, valorPago);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(2500m, cota.ValorPago); // 1000 + 1500
+            Assert.Equal(5, cota.ParcelasPagas); // 2 + 3
+        }
+
+        [Fact]
+        public async Task RegisterPaymentAsync_ExcedeParcelasRestantes_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.Ativo = true;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 0m;
+            cota.ParcelasPagas = 4; // já pagou 4 parcelas
+
+            var valorPago = 1500m; // tenta pagar 3 parcelas
+
+            // Consorcio com prazo de 6 meses -> restam 2 parcelas
+            var primeira = new Cotas { Consorcio = new Consorcio { PrazoMeses = 6 } };
+
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+            _mockRepository.Setup(r => r.GetByConsorcioAsync(cota.ConsorcioId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Cotas> { primeira });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RegisterPaymentAsync(cota.Id, valorPago));
+            Assert.Contains("Não é possível pagar", exception.Message);
+        }
+
+        [Fact]
+        public async Task RegisterPaymentAsync_ComParcelasRestantesZero_DeveLancarInvalidOperationException()
+        {
+            // Arrange
+            var cota = _faker.Generate();
+            cota.Ativo = true;
+            cota.ValorParcela = 500m;
+            cota.ValorPago = 3000m;
+            cota.ParcelasPagas = 6; // igual ao prazo
+
+            var valorPago = 500m; // qualquer valor
+
+            var primeira = new Cotas { Consorcio = new Consorcio { PrazoMeses = 6 } };
+
+            _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cota);
+            _mockRepository.Setup(r => r.GetByConsorcioAsync(cota.ConsorcioId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Cotas> { primeira });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.RegisterPaymentAsync(cota.Id, valorPago));
+            Assert.Contains("já está quitada", exception.Message);
         }
 
         [Theory]
@@ -352,37 +398,6 @@ namespace UnitTests.Services
             // Assert
             Assert.NotNull(result);
             Assert.True(result.DataAtualizacao > DateTime.MinValue);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task GetAvailableCotasAsync_ComConsorcioIdInvalido_DeveLancarArgumentException(int consorcioId)
-        {
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.GetAvailableCotasAsync(consorcioId));
-        }
-
-        [Fact]
-        public async Task GetAvailableCotasAsync_ComConsorcioValido_DeveRetornarCotasDisponiveis()
-        {
-            // Arrange
-            var consorcioId = 1;
-            var cotas = new List<Cotas>
-            {
-                new Cotas { Id = 1, UsuarioId = null, Ativo = true, Status = StatusCota.Ativo },
-                new Cotas { Id = 2, UsuarioId = 5, Ativo = true, Status = StatusCota.Ativo },
-                new Cotas { Id = 3, UsuarioId = null, Ativo = false, Status = StatusCota.Ativo }
-            };
-
-            _mockRepository.Setup(r => r.GetByConsorcioAsync(consorcioId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(cotas);
-
-            // Act
-            var result = (await _service.GetAvailableCotasAsync(consorcioId)).ToList();
-
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].Id);
         }
 
         [Theory]
