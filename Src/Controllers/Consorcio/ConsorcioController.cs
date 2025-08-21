@@ -48,6 +48,14 @@ namespace rian_p01_back.src.Controllers.Consorcio
             return Ok(response);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ConsorcioResumoResponseDto>>> GetAll(CancellationToken cancellationToken)
+        {
+            var consorcios = await _consorcioService.GetAllAsync(cancellationToken);
+            var response = ConsorcioResumoResponseDto.FromEntities(consorcios);
+            return Ok(response);
+        }
+
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<ConsorcioResumoResponseDto>>> GetActive(CancellationToken cancellationToken)
         {
