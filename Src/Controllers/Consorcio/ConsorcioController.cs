@@ -27,13 +27,13 @@ namespace rian_p01_back.src.Controllers.Consorcio
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ConsorcioResponseDto>> GetById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<ConsorcioResumoResponseDto>> GetById(int id, CancellationToken cancellationToken)
         {
             var consorcio = await _consorcioService.GetByIdAsync(id, cancellationToken);
             if (consorcio == null)
                 return NotFound(new { message = "Consórcio não encontrado" });
 
-            var response = ConsorcioResponseDto.FromEntity(consorcio);
+            var response = ConsorcioResumoResponseDto.FromEntity(consorcio);
             return Ok(response);
         }
 

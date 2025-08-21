@@ -15,7 +15,7 @@ public class ConsorcioResponseDto
     public bool Ativo { get; set; }
     public DateTime DataCadastro { get; set; }
     public DateTime? DataAtualizacao { get; set; }
-    public IEnumerable<CotasResumoResponseDto>? Cotas { get; set; }
+    public IEnumerable<CotasResponseDto>? Cotas { get; set; }
 
     public static ConsorcioResponseDto FromEntity(Consorcio consorcio)
     {
@@ -34,7 +34,7 @@ public class ConsorcioResponseDto
             Ativo = consorcio.Ativo,
             DataCadastro = consorcio.DataCadastro,
             DataAtualizacao = consorcio.DataAtualizacao,
-            Cotas = consorcio.Cotas?.Select(CotasResumoResponseDto.FromEntity)
+            Cotas = consorcio.Cotas?.Select(CotasResponseDto.FromEntity)
         };
     }
 
