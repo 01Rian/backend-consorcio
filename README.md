@@ -215,6 +215,7 @@ A seguir estão os endpoints disponíveis na API. A maioria das rotas requer aut
 | Método HTTP | Rota | Descrição |
 | :--- | :--- | :--- |
 | `POST` | `/` | Cria um novo consórcio. |
+| `GET` | `/` | Obtém todos os consórcios (ativos e inativos). |
 | `GET` | `/{id}` | Obtém um consórcio pelo ID. |
 | `GET` | `/{id}/with-cotas` | Obtém um consórcio com suas cotas. |
 | `GET` | `/active` | Obtém todos os consórcios ativos. |

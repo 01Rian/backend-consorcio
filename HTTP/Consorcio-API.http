@@ -11,7 +11,7 @@ Content-Type: application/json
 }
 
 ### Extrair o token da resposta do login
-@token = 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzIiwiZW1haWwiOiJjYXJsb3MucGVyZWlyYUBleGVtcGxvLmNvbSIsIm5hbWUiOiJDYXJsb3MgUGVyZWlyYSIsIm5iZiI6MTc1NTc5NTQxOSwiZXhwIjoxNzg3MzUzMDE5LCJpc3MiOiJzZXVpc3N1ZXIiLCJhdWQiOiJzZXVhdWRpZW5jZSJ9.1I17zLXOsGOw2iP25eEyY4F0Kd1ESkOiBMSCNtiXZVk
 ### ==================================================
 ### OPERAÇÕES DE CONSÓRCIO
 ### ==================================================
@@ -38,25 +38,31 @@ Accept: application/json
 Authorization: Bearer {{token}}
 
 
-### 3. Buscar consórcio por ID
+### 3. Listar todos os consórcios (ativos e inativos)
+GET {{host}}/api/consorcio/
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 4. Buscar consórcio por ID
 GET {{host}}/api/consorcio/17
 Accept: application/json
 Authorization: Bearer {{token}}
 
 
-### 4. Buscar consórcio com suas cotas
+### 5. Buscar consórcio com suas cotas
 GET {{host}}/api/consorcio/17/with-cotas
 Accept: application/json
 Authorization: Bearer {{token}}
 
 
-### 5. Buscar cotas disponíveis de um consórcio
+### 6. Buscar cotas disponíveis de um consórcio
 GET {{host}}/api/consorcio/17/available-cotas
 Accept: application/json
 Authorization: Bearer {{token}}
 
 
-### 6. Atribuir cota ao usuário
+### 7. Atribuir cota ao usuário
 POST {{host}}/api/consorcio/assign-cota
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -67,7 +73,7 @@ Authorization: Bearer {{token}}
 }
 
 
-### 7. Atualizar consórcio
+### 8. Atualizar consórcio
 PUT {{host}}/api/consorcio/1
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -85,13 +91,13 @@ Authorization: Bearer {{token}}
 }
 
 
-### 8. Deletar consórcio (vai deletar as cotas também)
+### 9. Deletar consórcio (vai deletar as cotas também)
 DELETE {{host}}/api/consorcio/20
 Accept: application/json
 Authorization: Bearer {{token}}
 
 
-### 9. Adicionar cotas a um consórcio existente
+### 10. Adicionar cotas a um consórcio existente
 POST {{host}}/api/consorcio/17/cotas
 Content-Type: application/json
 Authorization: Bearer {{token}}
