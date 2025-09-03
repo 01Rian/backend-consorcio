@@ -87,8 +87,8 @@ namespace rian_p01_back.src.Services.Implementations
             if (cota.Contemplada)
                 throw new InvalidOperationException("A cota já está contemplada");
 
-            if (!cota.Ativo || cota.Status != StatusCota.Ativo)
-                throw new InvalidOperationException("A cota precisa estar ativa para ser contemplada");
+            if (!cota.Ativo && cota.Status != StatusCota.Quitado)
+                throw new InvalidOperationException("A cota precisa estar ativa ou quitada para ser contemplada");
 
             cota.Contemplada = true;
             cota.DataContemplacao = DateTime.Now;
@@ -139,7 +139,6 @@ namespace rian_p01_back.src.Services.Implementations
             if (prazo.HasValue && cota.ParcelasPagas >= prazo.Value)
             {
                 cota.Status = StatusCota.Quitado;
-                cota.Ativo = false;
             }
         }
 
