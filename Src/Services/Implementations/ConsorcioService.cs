@@ -144,9 +144,10 @@ namespace rian_p01_back.src.Services.Implementations
                     UsuarioId = null // Cotas são criadas sem usuário, serão atribuídas posteriormente
                 };
 
-                await _cotasService.CreateAsync(cota, cancellationToken);
                 cotasCriadas.Add(cota);
             }
+
+            await _cotasService.AddRangeAsync(cotasCriadas, cancellationToken);
 
             consorcio.QuantidadeCotas = cotasExistentes + quantidade;
             consorcio.DataAtualizacao = DateTime.Now;
