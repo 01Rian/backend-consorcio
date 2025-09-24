@@ -103,7 +103,7 @@ namespace rian_p01_back.src.Services.Implementations
 
 
 
-    private static int CalculateParcelToAdd(decimal pagamento, decimal valorParcela)
+        private static int CalculateParcelToAdd(decimal pagamento, decimal valorParcela)
         {
             if (pagamento < valorParcela)
                 throw new InvalidOperationException("O valor pago não pode ser menor que o valor da parcela");
@@ -115,9 +115,9 @@ namespace rian_p01_back.src.Services.Implementations
             return (int)parcelasDecimal;
         }
 
-    
 
-    private static void ValidatePaymentTerm(Cotas cota, int parcelasAdicionadas, int? prazo)
+
+        private static void ValidatePaymentTerm(Cotas cota, int parcelasAdicionadas, int? prazo)
         {
             if (!prazo.HasValue || prazo.Value <= 0)
                 return;
@@ -130,7 +130,7 @@ namespace rian_p01_back.src.Services.Implementations
                 throw new InvalidOperationException($"Não é possível pagar {parcelasAdicionadas} parcela(s). Restam apenas {parcelasRestantes} parcela(s) para quitar esta cota.");
         }
 
-    private static void UpdateCotaWithPayment(Cotas cota, int parcelasAdicionadas, decimal pagamento, int? prazo)
+        private static void UpdateCotaWithPayment(Cotas cota, int parcelasAdicionadas, decimal pagamento, int? prazo)
         {
             cota.ParcelasPagas += parcelasAdicionadas;
             cota.ValorPago += pagamento;
@@ -142,28 +142,35 @@ namespace rian_p01_back.src.Services.Implementations
             }
         }
 
-        public override async Task<Cotas> CreateAsync(Cotas entity, CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<Cotas>> AddRangeAsync(IEnumerable<Cotas> entities, CancellationToken cancellationToken = default)
         {
-            if (entity == null)
-                throw new ArgumentNullException(nameof(entity));
+            ArgumentNullException.ThrowIfNull(entities);
 
-            if (entity.ValorParcela <= 0)
-                throw new ArgumentException("O valor da parcela deve ser maior que zero");
+            var list = entities.ToList();
+            if (list.Count == 0) return list;
 
-            if (entity.ConsorcioId <= 0)
-                throw new ArgumentException("O ConsorcioId deve ser maior que zero");
+            foreach (var entity in list)
+            {
+                if (entity.ValorParcela <= 0)
+                    throw new ArgumentException("O valor da parcela deve ser maior que zero");
 
-            if (string.IsNullOrWhiteSpace(entity.NumeroCota))
-                throw new ArgumentException("O número da cota é obrigatório");
+                if (entity.ConsorcioId <= 0)
+                    throw new ArgumentException("O ConsorcioId deve ser maior que zero");
 
-            entity.DataCadastro = DateTime.Now;
-            entity.Status = StatusCota.Ativo;
-            entity.Ativo = true;
-            entity.ValorPago = 0;
-            entity.ParcelasPagas = 0;
-            entity.Contemplada = false;
+                if (string.IsNullOrWhiteSpace(entity.NumeroCota))
+                    throw new ArgumentException("O número da cota é obrigatório");
 
-            return await base.CreateAsync(entity, cancellationToken);
+                entity.DataCadastro = DateTime.Now;
+                entity.Status = StatusCota.Ativo;
+                entity.Ativo = true;
+                entity.ValorPago = 0;
+                entity.ParcelasPagas = 0;
+                entity.Contemplada = false;
+            }
+
+            await base.AddRangeAsync(list, cancellationToken);
+
+            return list;
         }
 
         public override async Task<Cotas> UpdateAsync(Cotas entity, CancellationToken cancellationToken = default)

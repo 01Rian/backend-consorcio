@@ -10,6 +10,7 @@ namespace rian_p01_back.src.Data.Repositories.Interfaces
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
         void Update(T entity);
         void Remove(T entity);
+        Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

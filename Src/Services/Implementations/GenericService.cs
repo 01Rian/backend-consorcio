@@ -57,5 +57,14 @@ namespace rian_p01_back.src.Services.Implementations
             _repository.Remove(entity);
             await _repository.SaveChangesAsync(cancellationToken);
         }
+
+        public virtual async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(entities);
+
+            await _repository.AddRangeAsync(entities, cancellationToken);
+            await _repository.SaveChangesAsync(cancellationToken);
+            return entities;
+        }
     }
 }

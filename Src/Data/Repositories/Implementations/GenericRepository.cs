@@ -45,10 +45,16 @@ namespace rian_p01_back.src.Data.Repositories.Implementations
         {
             _dbSet.Remove(entity);
         }
-        
+
         public virtual Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public virtual async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        {
+            await _dbSet.AddRangeAsync(entities, cancellationToken);
+            return entities;
         }
     }
 }

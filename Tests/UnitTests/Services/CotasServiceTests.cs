@@ -138,7 +138,7 @@ namespace UnitTests.Services
             cota.ParcelasPagas = 5;
 
             var valorPago = 500m; // corresponde a 1 parcela
-            
+
             _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cota);
             _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -286,7 +286,7 @@ namespace UnitTests.Services
             // Arrange
             var cota = _faker.Generate();
             cota.Ativo = false;
-            
+
             _mockRepository.Setup(r => r.GetByIdAsync(cota.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(cota);
 
@@ -308,79 +308,6 @@ namespace UnitTests.Services
 
             // Assert
             Assert.False(result);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ComCotaValida_DeveCriarCota()
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            _mockRepository.Setup(r => r.AddAsync(cota, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(cota);
-            _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Act
-            var result = await _service.CreateAsync(cota);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.DataCadastro > DateTime.MinValue);
-            Assert.Equal(StatusCota.Ativo, result.Status);
-            Assert.True(result.Ativo);
-            Assert.Equal(0, result.ValorPago);
-            Assert.Equal(0, result.ParcelasPagas);
-            Assert.False(result.Contemplada);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task CreateAsync_ComValorParcelaInvalido_DeveLancarArgumentException(decimal valorParcela)
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.ValorParcela = valorParcela;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(cota));
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public async Task CreateAsync_ComConsorcioIdInvalido_DeveLancarArgumentException(int consorcioId)
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.ConsorcioId = consorcioId;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(cota));
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData("   ")]
-        public async Task CreateAsync_ComNumeroCotaInvalido_DeveLancarArgumentException(string numeroCota)
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.NumeroCota = numeroCota;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(cota));
-        }
-
-        [Fact]
-        public async Task CreateAsync_ComNumeroCotaNulo_DeveLancarArgumentException()
-        {
-            // Arrange
-            var cota = _faker.Generate();
-            cota.NumeroCota = null!;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(cota));
         }
 
         [Fact]

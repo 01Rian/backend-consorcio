@@ -276,14 +276,15 @@ namespace UnitTests.Services
             _mockRepository.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
             var createdCotas = new List<Cotas>();
-            _mockCotasService.Setup(c => c.CreateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Cotas c, CancellationToken ct) => { createdCotas.Add(c); return c; });
+            _mockCotasService
+                .Setup(c => c.AddRangeAsync(It.IsAny<IEnumerable<Cotas>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<Cotas> cs, CancellationToken ct) => { createdCotas.AddRange(cs); return cs; });
 
             // Act
             var result = await _service.CreateAsync(consorcio);
 
             // Assert
-            _mockCotasService.Verify(c => c.CreateAsync(It.IsAny<Cotas>(), It.IsAny<CancellationToken>()), Times.Exactly(1));
+            _mockCotasService.Verify(c => c.AddRangeAsync(It.IsAny<IEnumerable<Cotas>>(), It.IsAny<CancellationToken>()), Times.Once);
             Assert.Single(createdCotas);
             Assert.Equal(consorcio.Codigo, createdCotas[0].NumeroCota.Split('-')[0]);
             Assert.Equal(1, result.QuantidadeCotas);
