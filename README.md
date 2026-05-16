@@ -74,7 +74,6 @@ Esta abordagem utiliza o Docker para executar o banco de dados SQL Server, simpl
 1.  **Clone o repositório:**
     ```bash
     git clone <URL>
-    cd rian-p01-back
     ```
 
 2.  **Crie o arquivo de ambiente:**
